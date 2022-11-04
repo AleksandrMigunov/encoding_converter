@@ -78,7 +78,8 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionEncoding_triggered()
 {
     QStringList items;
-    items << "UTF-8" << "Unicode (UTF-16)" << tr("Windows-1251 (Cyrillic)") << tr("KOI8-R (Cyrillic)") <<
+    items << "UTF-8" << "Unicode (UTF-16)" << "UTF-16BE" << "UTF-16LE" <<
+             tr("Windows-1251 (Cyrillic)") << tr("KOI8-R (Cyrillic)") <<
              tr("CP866 / IBM866 (Cyrillic)") << tr("ISO 8859-5 (Cyrillic)") <<
              tr("Windows-1250 (Central European)") << tr("Windows-1252 (Western)") <<
              tr("Windows-1253 (Greek)") << tr("Windows-1254 (Turkish)") <<
@@ -99,6 +100,8 @@ void MainWindow::on_actionEncoding_triggered()
 
         if (item == "UTF-8") EncodingDocument = "UTF-8";
         else if (item == "Unicode (UTF-16)") EncodingDocument = "Unicode";
+        else if (item == "UFT-16BE") EncodingDocument = "UTF-16BE";
+        else if (item == "UTF-16LE") EncodingDocument = "UTF-16LE";
         else if (item == tr("Windows-1251 (Cyrillic)")) EncodingDocument = "Windows-1251";
         else if (item == tr("KOI8-R (Cyrillic)")) EncodingDocument = "KOI8-R";
         else if (item == tr("CP866 / IBM866 (Cyrillic)")) EncodingDocument = "IBM866";
@@ -171,7 +174,9 @@ void MainWindow::on_actionEncoding_triggered()
 
             QString EncodingList = EncodingDocument;
             if (EncodingList == "UTF-8") in.setCodec("UTF-8");
-            else if (EncodingList == "Unicode") in.setCodec("Unicode");
+            else if (EncodingList == "Unicode") in.setCodec("UTF-16");
+            else if (EncodingList == "UTF-16BE") in.setCodec("UTF-16BE");
+            else if (EncodingList == "UTF-16LE") in.setCodec("UTF-16LE");
             else if (EncodingList == "Windows-1251") in.setCodec("Windows-1251");
             else if (EncodingList == "KOI8-R") in.setCodec("KOI8-R");
             else if (EncodingList == "IBM866") in.setCodec("IBM866");
@@ -269,7 +274,8 @@ void MainWindow::on_actionSave_As_triggered()
             QTextStream out(&File);
 
             QStringList items;
-            items << "UTF-8" << "Unicode (UTF-16)" << tr("Windows-1251 (Cyrillic)") << tr("KOI8-R (Cyrillic)") <<
+            items << "UTF-8" << "Unicode (UTF-16)" << "UTF-16BE" << "UTF-16LE" <<
+                     tr("Windows-1251 (Cyrillic)") << tr("KOI8-R (Cyrillic)") <<
                      tr("CP866 / IBM866 (Cyrillic)") << tr("ISO 8859-5 (Cyrillic)") <<
                      tr("Windows-1250 (Central European)") << tr("Windows-1252 (Western)") <<
                      tr("Windows-1253 (Greek)") << tr("Windows-1254 (Turkish)") <<
@@ -290,6 +296,8 @@ void MainWindow::on_actionSave_As_triggered()
 
                 if (item == "UTF-8") EncodingDocument = "UTF-8";
                 else if (item == "Unicode (UTF-16)") EncodingDocument = "Unicode";
+                else if (item == "UTF-16BE") EncodingDocument = "UTF-16BE";
+                else if (item == "UTF-16LE") EncodingDocument = "UTF-16LE";
                 else if (item == tr("Windows-1251 (Cyrillic)")) EncodingDocument = "Windows-1251";
                 else if (item == tr("KOI8-R (Cyrillic)")) EncodingDocument = "KOI8-R";
                 else if (item == tr("CP866 / IBM866 (Cyrillic)")) EncodingDocument = "IBM866";
@@ -319,7 +327,9 @@ void MainWindow::on_actionSave_As_triggered()
 
             QString EncodingList = EncodingDocument;
             if (EncodingList == "UTF-8") out.setCodec("UTF-8");
-            else if (EncodingList == "Unicode") out.setCodec("Unicode");
+            else if (EncodingList == "Unicode") out.setCodec("UTF-16");
+            else if (EncodingList == "UTF-16BE") out.setCodec("UTF-16BE");
+            else if (EncodingList == "UTF-16LE") out.setCodec("UTF-16LE");
             else if (EncodingList == "Windows-1251") out.setCodec("Windows-1251");
             else if (EncodingList == "KOI8-R") out.setCodec("KOI8-R");
             else if (EncodingList == "IBM866") out.setCodec("IBM866");
