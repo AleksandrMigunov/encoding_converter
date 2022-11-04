@@ -53,41 +53,21 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.textEdit.clear()
         self.NewOpened = "new window"
 
-    def openFile(self):
-        self.NewOpened = ""
-        options = QtWidgets.QFileDialog.Options()
-        self.fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "",
-                                                                     "All Files (*.*)", options=options)
-        if self.fileName:
-            self.ui.textEdit.clear()
-            try:
-                self.openF = open(self.fileName, 'r', encoding='utf-8')
-            except UnicodeDecodeError:
-                self.openF = open(self.fileName, 'r', encoding='utf-8-sig')
-            self.ui.textEdit.insertPlainText(self.openF.read())
-            self.openF.close()
-
-        else:
-            QtWidgets.QMessageBox.information(self, "Error", "Unable to open file.",
-                                              QtWidgets.QMessageBox.Ok)
-
-        self.FileOpened = self.fileName
-
-    def encodingFile(self):
-        items = ["UTF-8", "Unicode (UTF-16)", "Windows-1251 (Cyrillic)", "KOI8-R (Cyrillic)", \
-        "CP866 / IBM866 (Cyrillic)", "ISO 8859-5 (Cyrillic)", \
-        "Windows-1250 (Central European)", "Windows-1252 (Western)", \
-        "Windows-1253 (Greek)","Windows-1254 (Turkish)", \
-        "Windows-1255 (Hebrew)", "Windows-1256 (Arabic)", "Windows-1257 (Baltic)", \
-        "ISO 8859-1 (Latin-1)", "ISO 8859-2 (Latin-2)", \
-        "ISO 8859-3 (Latin-3)", "ISO 8859-4 (Latin-4)", \
-        "ISO 8859-9 (Latin-5)", "ISO 8859-10 (Latin-6)", \
-        "ISO 8859-13 (Latin-7)", "ISO 8859-14 (Latin-8)", \
-        "ISO 8859-15 (Latin-9)", "ISO 8859-16 (Latin-10)", \
-        "ISO 8859-6 (Arabic)", "ISO 8859-7 (Greek)","ISO 8859-8 (Hebrew)"]
+    def chooseEncoding(self):
+        items = ["UTF-8", "Unicode (UTF-16)", "UTF-16BE", "UTF-16LE", "Windows-1251 (Cyrillic)", \
+                 "KOI8-R (Cyrillic)", "CP866 / IBM866 (Cyrillic)", "ISO 8859-5 (Cyrillic)", \
+                 "Windows-1250 (Central European)", "Windows-1252 (Western)", \
+                 "Windows-1253 (Greek)", "Windows-1254 (Turkish)", \
+                 "Windows-1255 (Hebrew)", "Windows-1256 (Arabic)", "Windows-1257 (Baltic)", \
+                 "ISO 8859-1 (Latin-1)", "ISO 8859-2 (Latin-2)", \
+                 "ISO 8859-3 (Latin-3)", "ISO 8859-4 (Latin-4)", \
+                 "ISO 8859-9 (Latin-5)", "ISO 8859-10 (Latin-6)", \
+                 "ISO 8859-13 (Latin-7)", "ISO 8859-14 (Latin-8)", \
+                 "ISO 8859-15 (Latin-9)", "ISO 8859-16 (Latin-10)", \
+                 "ISO 8859-6 (Arabic)", "ISO 8859-7 (Greek)", "ISO 8859-8 (Hebrew)"]
 
         item = QtWidgets.QInputDialog.getItem(self, "Changing encoding", "Choose encoding: ",
-                              items, current=0, editable=False)
+                                              items, current=0, editable=False)
 
         EncodingDocument = ""
 
@@ -95,8 +75,10 @@ class MyWin(QtWidgets.QMainWindow):
             if item[0] == "UTF-8":
                 EncodingDocument = "utf-8"
             elif item[0] == "Unicode (UTF-16)":
-                #EncodingDocument = "utf-16"
-                #EncodingDocument = "utf-16be"
+                EncodingDocument = "utf-16"
+            elif item[0] == "UTF-16BE":
+                EncodingDocument = "utf-16be"
+            elif item[0] == "UTF-16LE":
                 EncodingDocument = "utf-16le"
             elif item[0] == "Windows-1251 (Cyrillic)":
                 EncodingDocument = "cp1251"
@@ -148,7 +130,50 @@ class MyWin(QtWidgets.QMainWindow):
                 EncodingDocument = "iso8859-8"
             else:
                 EncodingDocument = "utf-8"
+        return EncodingDocument
 
+    def openFile(self):
+        self.NewOpened = ""
+        self.FileOpened = ""
+        options = QtWidgets.QFileDialog.Options()
+        self.fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "",
+                                                                     "All Files (*.*)", options=options)
+        if self.fileName:
+            self.ui.textEdit.clear()
+            try:
+                self.openF = open(self.fileName, 'r', encoding='utf-8')
+                self.ui.textEdit.insertPlainText(self.openF.read())
+                self.openF.close()
+                self.FileOpened = self.fileName
+            except (UnicodeDecodeError, ValueError):
+                QtWidgets.QMessageBox.warning(self, "Unable to open file", \
+                                              "This file cannot be opened in UTF-8. Choose another encoding.")
+
+                EncodingDocument = self.chooseEncoding()
+                try:
+                    self.openF = open(self.fileName, 'r', encoding=EncodingDocument)
+                    self.ui.textEdit.insertPlainText(self.openF.read())
+                    self.openF.close()
+                    self.FileOpened = self.fileName
+                except (UnicodeDecodeError, ValueError):
+                    QtWidgets.QMessageBox.warning(self, "Unable to open file", \
+                                                  "This file cannot be opened in the chosen encoding. Choose another one.")
+                    EncodingDocument = self.chooseEncoding()
+                    try:
+                        self.openF = open(self.fileName, 'r', encoding=EncodingDocument)
+                        self.ui.textEdit.insertPlainText(self.openF.read())
+                        self.openF.close()
+                        self.FileOpened = self.fileName
+                    except (UnicodeDecodeError, ValueError):
+                        QtWidgets.QMessageBox.information(self, "Error", "Unable to open file. Wrong Encoding.",
+                                                              QtWidgets.QMessageBox.Ok)
+
+        else:
+            QtWidgets.QMessageBox.information(self, "Error", "Unable to open file.",
+                                              QtWidgets.QMessageBox.Ok)
+
+    def encodingFile(self):
+        EncodingDocument = self.chooseEncoding()
         file = ""
         if self.FileOpened:
             file = self.FileOpened
@@ -163,10 +188,22 @@ class MyWin(QtWidgets.QMainWindow):
             file, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "",
                                                                  "All Files (*.*)", options=options)
         if file:
-            self.ui.textEdit.clear()
-            self.openF = open(self.FileOpened, 'r', encoding=EncodingDocument)
-            self.ui.textEdit.insertPlainText(self.openF.read())
-            self.openF.close()
+            try:
+                self.ui.textEdit.clear()
+                self.openF = open(self.FileOpened, 'r', encoding=EncodingDocument)
+                self.ui.textEdit.insertPlainText(self.openF.read())
+                self.openF.close()
+            except (UnicodeDecodeError, ValueError):
+                QtWidgets.QMessageBox.warning(self, "Unable to open file", \
+                                              "This file cannot be opened in the chosen encoding. Choose another one.")
+                EncodingDocument = self.chooseEncoding()
+                try:
+                    self.openF = open(self.fileName, 'r', encoding=EncodingDocument)
+                    self.ui.textEdit.insertPlainText(self.openF.read())
+                    self.openF.close()
+                except (UnicodeDecodeError, ValueError):
+                    QtWidgets.QMessageBox.information(self, "Error", "Unable to open file. Wrong Encoding.",
+                                                      QtWidgets.QMessageBox.Ok)
 
         else:
             QtWidgets.QMessageBox.information(self, "Error", "Unable to open file.",
@@ -194,86 +231,12 @@ class MyWin(QtWidgets.QMainWindow):
 
 
         if file:
-            items = ["UTF-8", "Unicode (UTF-16)", "Windows-1251 (Cyrillic)", "KOI8-R (Cyrillic)", \
-            "CP866 / IBM866 (Cyrillic)", "ISO 8859-5 (Cyrillic)", \
-            "Windows-1250 (Central European)", "Windows-1252 (Western)", \
-            "Windows-1253 (Greek)","Windows-1254 (Turkish)", \
-            "Windows-1255 (Hebrew)", "Windows-1256 (Arabic)", "Windows-1257 (Baltic)", \
-            "ISO 8859-1 (Latin-1)", "ISO 8859-2 (Latin-2)", \
-            "ISO 8859-3 (Latin-3)", "ISO 8859-4 (Latin-4)", \
-            "ISO 8859-9 (Latin-5)", "ISO 8859-10 (Latin-6)", \
-            "ISO 8859-13 (Latin-7)", "ISO 8859-14 (Latin-8)", \
-            "ISO 8859-15 (Latin-9)", "ISO 8859-16 (Latin-10)", \
-            "ISO 8859-6 (Arabic)", "ISO 8859-7 (Greek)","ISO 8859-8 (Hebrew)"]
-
-            item = QtWidgets.QInputDialog.getItem(self, "Changing encoding", "Choose encoding: ",
-                              items, current=0, editable=False)
-
-            EncodingDocument = ""
-
-            if item[0] != "" and item[1] == True:
-                if item[0] == "UTF-8":
-                    EncodingDocument = "utf-8"
-                elif item[0] == "Unicode (UTF-16)":
-                    #EncodingDocument = "utf-16"
-                    #EncodingDocument = "utf-16be"
-                    EncodingDocument = "utf-16le"
-                elif item[0] == "Windows-1251 (Cyrillic)":
-                    EncodingDocument = "cp1251"
-                elif item[0] == "KOI8-R (Cyrillic)":
-                    EncodingDocument = "koi8_r"
-                elif item[0] == "CP866 / IBM866 (Cyrillic)":
-                    EncodingDocument = "cp866"
-                elif item[0] == "ISO 8859-5 (Cyrillic)":
-                    EncodingDocument = "iso8859-5"
-                elif item[0] == "Windows-1250 (Central European)":
-                    EncodingDocument = "cp1250"
-                elif item[0] == "Windows-1252 (Western)":
-                    EncodingDocument = "cp1252"
-                elif item[0] == "Windows-1253 (Greek)":
-                    EncodingDocument = "cp1253"
-                elif item[0] == "Windows-1254 (Turkish)":
-                    EncodingDocument = "cp1254"
-                elif item[0] == "Windows-1255 (Hebrew)":
-                    EncodingDocument = "cp1255"
-                elif item[0] == "Windows-1256 (Arabic)":
-                    EncodingDocument = "cp1256"
-                elif item[0] == "Windows-1257 (Baltic)":
-                    EncodingDocument = "cp1257"
-                elif item[0] == "ISO 8859-1 (Latin-1)":
-                    EncodingDocument = "iso8859-1"
-                elif item[0] == "ISO 8859-2 (Latin-2)":
-                    EncodingDocument = "iso8859-2"
-                elif item[0] == "ISO 8859-3 (Latin-3)":
-                    EncodingDocument = "iso8859-3"
-                elif item[0] == "ISO 8859-4 (Latin-4)":
-                    EncodingDocument = "iso8859-4"
-                elif item[0] == "ISO 8859-9 (Latin-5)":
-                    EncodingDocument = "iso8859-9"
-                elif item[0] == "ISO 8859-10 (Latin-6)":
-                    EncodingDocument = "iso8859-10"
-                elif item[0] == "ISO 8859-13 (Latin-7)":
-                    EncodingDocument = "iso8859-13"
-                elif item[0] == "ISO 8859-14 (Latin-8)":
-                    EncodingDocument = "iso8859-14"
-                elif item[0] == "ISO 8859-15 (Latin-9)":
-                    EncodingDocument = "iso8859-15"
-                elif item[0] == "ISO 8859-16 (Latin-10)":
-                    EncodingDocument = "iso8859-16"
-                elif item[0] == "ISO 8859-6 (Arabic)":
-                    EncodingDocument = "iso8859-6"
-                elif item[0] == "ISO 8859-7 (Greek)":
-                    EncodingDocument = "iso8859-7"
-                elif item[0] == "ISO 8859-8 (Hebrew)":
-                    EncodingDocument = "iso8859-8"
-                else:
-                    EncodingDocument = "utf-8"
-
-                f = open(file, 'w', encoding=EncodingDocument)
-                notepad_text = self.ui.textEdit.toPlainText()
-                f.write(notepad_text)
-                f.close()
-                QtWidgets.QMessageBox.information(self, "File was saved",
+            EncodingDocument = self.chooseEncoding()
+            f = open(file, 'w', encoding=EncodingDocument)
+            notepad_text = self.ui.textEdit.toPlainText()
+            f.write(notepad_text)
+            f.close()
+            QtWidgets.QMessageBox.information(self, "File was saved",
                                                   "File was saved as" + file)
 
 
